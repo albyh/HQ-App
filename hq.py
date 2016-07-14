@@ -29,7 +29,8 @@ class Hq:
         self.results = {'moved'  : [], 'skipped': [], 'lastXfer': None }
         self.__initMenu()
         self.__initWin()
-        self.__setHistoryLabels()
+        if not self.db.newTables:
+            self.__setHistoryLabels()
         self.__getDbPaths()
 
     def __initMenu(self):
@@ -107,7 +108,7 @@ class Hq:
             return False
 
     def __setHistoryLabels(self):
-        #update the last transfer data and stats
+        #update the last transfer data and stats if ! New db
         rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE move_date = (SELECT MAX(move_date) FROM {0}) AND hq_id = 100'.format(self.db.dbConfig['hqTables'][1])) 
         assert len(rows) is 1, "Didn't receive exactly one item back."
         xferDate, moved, failed, skipped = rows[0]
@@ -216,7 +217,7 @@ class Hq:
         self.db.x(sqlStmt, values)
         
         self.__showResults(len(moved), len(skipped))
-        self.__setHistoryLabels()
+        self.__setHistoryLabels() 
         self.results["moved"] = moved
         self.results["skipped"] = skipped
 
