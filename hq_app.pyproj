@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{11ecd8e8-a025-4dca-9647-e57627cef2e3}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile>hq.py</StartupFile>
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
+    <InterpreterVersion>2.7</InterpreterVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="hq.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="dest\TextFile1.txt" />
+    <Content Include="dest\TextFile2.txt" />
+    <Content Include="dest\TextFile3.txt" />
+    <Content Include="source\AppLog_2016-07-07.txt" />
+    <Content Include="source\AppLog_2016-07-08.txt" />
+    <Content Include="source\AppLog_2016-07-09.txt" />
+    <Content Include="source\enclipper_2016-06-17.txt" />
+    <Content Include="source\enclipper_2016-06-27.txt" />
+    <Content Include="source\enclipper_2016-06-28.txt" />
+    <Content Include="source\TextFile4.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="dest" />
+    <Folder Include="source" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\2.7" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>

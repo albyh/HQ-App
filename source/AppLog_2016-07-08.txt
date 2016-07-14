@@ -1,0 +1,21 @@
+asdfas df
+Log opened on 2016/07/08 08:27:58 (UTC-7:00)
+
+08:27:58 [4024] Command line: "C:\Program Files (x86)\Evernote\Evernote\Evernote.exe" /Task:NewNote /Hide 
+
+Log closed on 2016/07/08 08:27:58 (UTC-7:00)
+
+
+Log opened on 2016/07/08 08:45:16 (UTC-7:00)
+
+08:45:16 [16932] Command line: "C:\Program Files (x86)\Evernote\Evernote\Evernote.exe" /Task:NewNote /Hide 
+
+Log closed on 2016/07/08 08:45:16 (UTC-7:00)
+
+
+Log opened on 2016/07/08 09:00:15 (UTC-7:00)
+
+09:00:15 [5940] Command line: "C:\Program Files (x86)\Evernote\Evernote\Evernote.exe" "evernote:///view/5726338/s54/018b1256-4053-4e3c-9180-67bf97c6c3b9/018b1256-4053-4e3c-9180-67bf97c6c3b9/"
+
+Log closed on 2016/07/08 09:00:15 (UTC-7:00)
+
