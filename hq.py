@@ -108,7 +108,7 @@ class Hq:
 
     def __setHistoryLabels(self):
         #update the last transfer data and stats if there are records in the table
-        if not self.db.emptyTable(self.db.dbConfig['hqTables'][1]):
+        if not self.db.__emptyTable(self.db.dbConfig['hqTables'][1]):
             rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE move_date = (SELECT MAX(move_date) FROM {0}) AND hq_id = 100'.format(self.db.dbConfig['hqTables'][1])) 
             assert len(rows) is 1, "Didn't receive exactly one item back."
             xferDate, moved, failed, skipped = rows[0]
@@ -286,13 +286,13 @@ class Db:
                 self.con.text_factory = str
                 self.c  = self.con.cursor()
                 self.verifyTables()
-                if self.emptyTable(self.dbConfig['hqTables'][0]):
+                if self.__emptyTable(self.dbConfig['hqTables'][0]):
                     print( 'no records...populating table')
                     self.populateTables()
                     #assume tables are new
                     self.newTables = True
 
-    def emptyTable(self, table):
+    def __emptyTable(self, table):
         #returns true if passed table is empty 
         recs = self.c.execute('SELECT COUNT(*) FROM {} LIMIT 1'.format(table))
         x = recs.fetchone()
