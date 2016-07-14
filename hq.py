@@ -29,8 +29,7 @@ class Hq:
         self.results = {'moved'  : [], 'skipped': [], 'lastXfer': None }
         self.__initMenu()
         self.__initWin()
-        if not self.db.newTables:
-            self.__setHistoryLabels()
+        self.__setHistoryLabels()
         self.__getDbPaths()
 
     def __initMenu(self):
@@ -108,14 +107,15 @@ class Hq:
             return False
 
     def __setHistoryLabels(self):
-        #update the last transfer data and stats if ! New db
-        rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE move_date = (SELECT MAX(move_date) FROM {0}) AND hq_id = 100'.format(self.db.dbConfig['hqTables'][1])) 
-        assert len(rows) is 1, "Didn't receive exactly one item back."
-        xferDate, moved, failed, skipped = rows[0]
+        #update the last transfer data and stats if there are records in the table
+        if not self.db.emptyTable(self.db.dbConfig['hqTables'][1]):
+            rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE move_date = (SELECT MAX(move_date) FROM {0}) AND hq_id = 100'.format(self.db.dbConfig['hqTables'][1])) 
+            assert len(rows) is 1, "Didn't receive exactly one item back."
+            xferDate, moved, failed, skipped = rows[0]
 
-        self.xferLabel.config(text = 'Last Transfer Completed: {}'.format( xferDate.strftime( "%b %d, %Y at  %H:%M:%S")) )
-        self.xferMove.config(text = 'Files Moved Last Transfer: {}'.format( moved ))
-        self.xferSkip.config(text = 'Files Skipped Last Transfer: {}'.format( skipped ))
+            self.xferLabel.config(text = 'Last Transfer Completed: {}'.format( xferDate.strftime( "%b %d, %Y at  %H:%M:%S")) )
+            self.xferMove.config(text = 'Files Moved Last Transfer: {}'.format( moved ))
+            self.xferSkip.config(text = 'Files Skipped Last Transfer: {}'.format( skipped ))
 
     def setFolder(self,loc):
         #called when the user clicks button to set the source or destination folder
@@ -286,16 +286,17 @@ class Db:
                 self.con.text_factory = str
                 self.c  = self.con.cursor()
                 self.verifyTables()
-                #=========================
-                #this will return 0 if empty table and 1 if !empty but there has to be a better way?
-                #=========================
-                recs = self.c.execute('SELECT COUNT(*) FROM {} LIMIT 1'.format(self.dbConfig['hqTables'][0]))
-                x = recs.fetchone()
-                if x[0] == 0:
+                if self.emptyTable(self.dbConfig['hqTables'][0]):
                     print( 'no records...populating table')
                     self.populateTables()
                     #assume tables are new
                     self.newTables = True
+
+    def emptyTable(self, table):
+        #returns true if passed table is empty 
+        recs = self.c.execute('SELECT COUNT(*) FROM {} LIMIT 1'.format(table))
+        x = recs.fetchone()
+        return x[0] == 0
 
     def verifyTables(self):
         for i in range(len(self.dbConfig['hqTables'])):
