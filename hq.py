@@ -228,9 +228,16 @@ class Hq:
     def __saveXfer(self, cutoff, moved, skipped):
         sqlStmt = r"UPDATE {} SET last_move = '{}' WHERE hq_id = {}".format(self.db.dbConfig['hqTables'][0], cutoff, self.db.hq_id)
         self.db.x(sqlStmt)
-        sqlStmt = r"INSERT INTO hq_history VALUES (?,?,?,?,?)"
+
+        sqlStmt = r"INSERT INTO {} VALUES (?,?,?,?,?)".format(self.db.dbConfig['hqTables'][1]) #hq_history
         values = (self.db.hq_id, cutoff, len(moved), 0, len(skipped))
         self.db.x(sqlStmt, values)
+
+        for filename in skipped:
+            sqlStmt = r"INSERT INTO {} VALUES (?,?,?)".format(self.db.dbConfig['hqTables'][2]) #hq_results
+            values = (self.db.hq_id, cutoff, filename )
+            self.db.x(sqlStmt, values)
+        
         self.__showResults(len(moved), len(skipped))
         self.__setHistoryLabels() 
         self.results["moved"] = moved
@@ -246,11 +253,12 @@ class Db:
         #name and path are default values that will be used if hq.json is not found or is corrupt
         self.dbConfig['dbName']     = 'hq.db'
         self.dbConfig['dbPath']     = ''
-        self.dbConfig['hqTables']   = ['hq_data', 'hq_history']
+        self.dbConfig['hqTables']   = ['hq_data', 'hq_history', 'hq_results']
         #TO SET a field to TYPE=TIMESTAMP you also must INCLUDE detect_types=q.PARSE_DECLTYPES in the database connection command
         self.dbConfig['hqFields']   = [
             'hq_id INTEGER PRIMARY KEY, src_dir TEXT NOT NULL, dest_dir TEXT NOT NULL, last_move TIMESTAMP',
-            'hq_id INTEGER, move_date TIMESTAMP, moved INTEGER, failed INTEGER, skipped INTEGER, FOREIGN KEY(hq_id) REFERENCES {}(hq_id)'.format(self.dbConfig['hqTables'][0]),
+            'hq_id INTEGER, move_date TIMESTAMP PRIMARY KEY, moved INTEGER, failed INTEGER, skipped INTEGER, FOREIGN KEY(hq_id) REFERENCES {}(hq_id)'.format(self.dbConfig['hqTables'][0]),
+            'hq_id INTEGER, move_date TIMESTAMP NOT NULL, filename TEXT, FOREIGN KEY(move_date) REFERENCES {}(move_date)'.format(self.dbConfig['hqTables'][1]),
             ]
         #concatenated path+db_name
         self.hqdb = self.dbConfig['dbPath']+self.dbConfig['dbName']
