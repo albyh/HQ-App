@@ -120,6 +120,9 @@ class Hq:
         else:
             query = "SELECT r.filename FROM {0} r INNER JOIN {1} h ON r.move_date = h.move_date WHERE (SELECT MAX(h.move_date) FROM {1} h) = r.move_date".format(r, h)
             rows = self.db.q(query) 
+
+
+
             msg = self.db.reportLastFiles(rows)
             tkMessageBox.showinfo( "Files moved in Last Batch", msg )       
 
@@ -306,8 +309,8 @@ class Db:
     def reportLastFiles(self,results):
         parsed = ''
         for rec in results:
-            f = rec
-            parsed += '{}\n'.format( f ) 
+            f = str(rec)
+            parsed += '{}\n'.format( os.path.normpath(f) ) 
         return parsed
 
     def prepDb(self):
