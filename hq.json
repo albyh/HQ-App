@@ -1,1 +1,1 @@
-{"configFile": "hq.json", "dbName": "hq.db", "dbPath": "data/"}
+{"configFile": "hq.json", "hqFields": ["hq_id INTEGER PRIMARY KEY, src_dir TEXT NOT NULL, dest_dir TEXT NOT NULL, last_move TIMESTAMP", "hq_id INTEGER, move_date TIMESTAMP, moved INTEGER, failed INTEGER, skipped INTEGER, FOREIGN KEY(hq_id) REFERENCES hq_data(hq_id)"], "dbName": "hq.db", "hqTables": ["hq_data", "hq_history"], "dbPath": ""}

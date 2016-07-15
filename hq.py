@@ -11,11 +11,11 @@ class Hq:
     def __init__(self, win, db):
         self.win = win  
         self.db = db
-        self.win.title("Send Files to HQ (v3)")
+        self.win.title("Stage Files for HQ (v3)")
         self.paths     = {'src': '', 'dest': '' } #actual path
         self.locLabels = {'src': '', 'dest': '' } #Tkinter pointer
         self.text = [
-            "Send Files to HQ", 
+            "Stage Files for HQ", 
             "This helpful app automates the transfering of modified files to HQ",
             "Files modified since the prior transfer will be moved to the Staging Folder.",
             "Select Source and Destination folders then click 'Move to Staging Folder'",
@@ -58,9 +58,9 @@ class Hq:
 
         tk.Label(self.win, text = self.text[0], font = ('Arial', 42, 'bold'), pady=10, anchor='s', compound="center", fg='white', image=self.headImage).pack()
         tk.Frame(self.win, height = 1).pack()
-        tk.Label(self.win, text = self.text[1], font = ('Calibri', 12)).pack()
-        tk.Label(self.win, text = self.text[2], font = ('Calibri', 12), padx = 20).pack()
-        tk.Label(self.win, text = self.text[3], font = ('Calibri', 12)).pack()
+        tk.Label(self.win, text = self.text[1], font = ('Arial', 10)).pack()
+        tk.Label(self.win, text = self.text[2], font = ('Arial', 10), padx = 20).pack()
+        tk.Label(self.win, text = self.text[3], font = ('Arial', 10)).pack()
         tk.Frame(self.win, height = 10).pack()
 
     #create button container frame
@@ -124,7 +124,7 @@ class Hq:
             tkMessageBox.showinfo( "Summary of last 10 Transfers", msg )       
 
     def aboutBox(self):
-        tkMessageBox.showinfo( "About", "Send files to HQ.\n\n(c)  2016 HQ" )       
+        tkMessageBox.showinfo( "About", "Stage files for HQ.\n\n© 2016 HQ Inc." )       
 
     def __okToCopy(self):
         if self.paths["src"] != '' and self.paths["dest"] != '' and self.paths["src"] != self.paths["dest"]:
