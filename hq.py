@@ -91,7 +91,10 @@ class Hq:
         tkMessageBox.showinfo( "Report", "Files in the last transfer" )       
 
     def showXfers(self):
+        
+        rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE move_date = (SELECT MAX(move_date) FROM {0}) AND hq_id = {1}'.format(self.db.dbConfig['hqTables'][1], self.db.hq_id)) 
         tkMessageBox.showinfo( "Report", "Last 10 Transfers" )       
+
 
     def aboutBox(self):
         tkMessageBox.showinfo( "About", "Send files to HQ.\n\n(c)  2016 HQ" )       
@@ -108,8 +111,8 @@ class Hq:
 
     def __setHistoryLabels(self):
         #update the last transfer data and stats if there are records in the table
-        if not self.db.__emptyTable(self.db.dbConfig['hqTables'][1]):
-            rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE move_date = (SELECT MAX(move_date) FROM {0}) AND hq_id = 100'.format(self.db.dbConfig['hqTables'][1])) 
+        if not self.db.emptyTable(self.db.dbConfig['hqTables'][1]):
+            rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE move_date = (SELECT MAX(move_date) FROM {0}) AND hq_id = {1}'.format(self.db.dbConfig['hqTables'][1], self.db.hq_id)) 
             assert len(rows) is 1, "Didn't receive exactly one item back."
             xferDate, moved, failed, skipped = rows[0]
 
@@ -125,7 +128,7 @@ class Hq:
             #if a valid path is returned | else don't change anything
             self.paths[loc] = path
             self.__setPathLabel(loc)
-            sqlStmt = r"UPDATE {} SET {}_dir = '{}' WHERE hq_id = 100".format(self.db.dbConfig['hqTables'][0], loc, self.paths[loc])
+            sqlStmt = r"UPDATE {} SET {}_dir = '{}' WHERE hq_id = {}".format(self.db.dbConfig['hqTables'][0], loc, self.paths[loc], self.db.hq_id)
             self.db.x(sqlStmt)
 
         self.bCopy['state'] = 'normal' if self.__okToCopy() else 'disabled'
@@ -133,7 +136,7 @@ class Hq:
 
     def __getDbPaths(self):
         for loc in self.locLabels:
-            rows = self.db.q('SELECT {}_dir FROM hq_data WHERE hq_id = 100'.format(loc))
+            rows = self.db.q('SELECT {}_dir FROM hq_data WHERE hq_id = {}'.format(loc, self.db.hq_id))
             assert len(rows) is 1, "Didn't receive exactly one item back."
             
             try:
@@ -286,13 +289,13 @@ class Db:
                 self.con.text_factory = str
                 self.c  = self.con.cursor()
                 self.verifyTables()
-                if self.__emptyTable(self.dbConfig['hqTables'][0]):
+                if self.emptyTable(self.dbConfig['hqTables'][0]):
                     print( 'no records...populating table')
                     self.populateTables()
                     #assume tables are new
                     self.newTables = True
 
-    def __emptyTable(self, table):
+    def emptyTable(self, table):
         #returns true if passed table is empty 
         recs = self.c.execute('SELECT COUNT(*) FROM {} LIMIT 1'.format(table))
         x = recs.fetchone()
