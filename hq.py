@@ -91,9 +91,13 @@ class Hq:
         tkMessageBox.showinfo( "Report", "Files in the last transfer" )       
 
     def showXfers(self):
-        
-        rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE move_date = (SELECT MAX(move_date) FROM {0}) AND hq_id = {1}'.format(self.db.dbConfig['hqTables'][1], self.db.hq_id)) 
-        tkMessageBox.showinfo( "Report", "Last 10 Transfers" )       
+        dbHist = self.db.dbConfig['hqTables'][1]
+        if self.db.emptyTable(dbHist):
+            tkMessageBox.showinfo( "No transfers to report." )       
+        else:
+            rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE hq_id = {1} ORDER BY move_date DESC LIMIT 10'.format( dbHist, self.db.hq_id)) 
+            msg = self.db.parseRows(rows)
+        tkMessageBox.showinfo( "Report", msg )       
 
 
     def aboutBox(self):
@@ -275,6 +279,14 @@ class Db:
             with open(self.dbConfig['configFile'], 'w') as newDbFile:
                 json.dump(self.dbConfig, newDbFile)
         self.verifyDb() 
+
+    def parseRows(self,results):
+        parsed = ''
+        for rec in results:
+            d, m, f, s = rec
+            parsed += 'Date: {} | Moved: {} | Failed: {} | Skipped: {}\n'.format( d.strftime( "%b %d, %Y at  %H:%M:%S"), m, f, s ) 
+
+        return parsed
 
     def verifyDb(self):
         try:

@@ -1,4 +1,4 @@
-asdfas df
+sdfasdfas df
 Log opened on 2016/07/08 08:27:58 (UTC-7:00)
 
 08:27:58 [4024] Command line: "C:\Program Files (x86)\Evernote\Evernote\Evernote.exe" /Task:NewNote /Hide 
