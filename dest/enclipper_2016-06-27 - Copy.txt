@@ -1,0 +1,4 @@
+sdfdfsdf asdf updated 
+Log opened on 2016/06/27 17:41:39 (UTC-7:00)
+
+17:41:39 [8120] Failed to run pipe server with low integrity and EPM support attributes

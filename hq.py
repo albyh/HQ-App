@@ -58,25 +58,49 @@ class Hq:
         tk.Label(self.win, text = self.text[2], padx = 20).pack()
         tk.Label(self.win, text = self.text[3]).pack()
         tk.Frame(self.win, height = 20).pack()
-        #create button container frame
-        self.con1 = tk.Frame(self.win, height=100, width = 200, padx=10, pady=10, bd=2, relief='groove' )
+
+    #create button container frame
+        self.con1 = tk.Frame(self.win, height=50, width = 300, padx=100, pady=0, bd=2, relief='groove' )
         self.con1.pack()
         # options for src/dest buttons
-        self.button_opt = { 'fill': Tkconstants.BOTH, 'padx': 80, 'pady': 10}
+
+        self.b1Image = tk.PhotoImage(file="icon-arrow-l.gif")
+        self.b1Image = self.b1Image.subsample(4,4)
+        tk.Frame(self.con1, height = 20).pack()
+        #self.button_opt = {'fill': Tkconstants.BOTH, 'padx': 10, 'pady': 10}
+        #self.button_opt = {'padx': 10, 'pady': 10}
         # define buttons
-        self.bSource = tk.Button(self.con1, width=30, text='Source Folder', command= lambda: self.setFolder('src')).pack(**self.button_opt) 
-        self.locLabels['src'] = tk.Label(self.con1, text = os.path.normpath(self.paths['src']))
+        self.bSource = tk.Button(self.con1, width=250, text='  Source Folder', command= lambda: self.setFolder('src'), image=self.b1Image, compound="left", pady=2, padx=20)
+        self.bSource.pack() 
+        #self.bSource.pack(**self.button_opt) 
+
+        #self.bSource.config( width = 200 )                
+
+        self.locLabels['src'] = tk.Label(self.con1, pady=15, text = os.path.normpath(self.paths['src']))
         self.locLabels['src'].pack()
         tk.Frame(self.win, height = 20).pack()
-        #create button container frame    
-        self.con2 = tk.Frame(self.win, height=100, width = 200,  padx=10, pady=10,  bd=2, relief='groove' )
+    
+    #create button container frame    
+        self.con2 = tk.Frame(self.win, height=20, width = 300, padx=100, pady=0, bd=2, relief='groove' )
         self.con2.pack()
-        self.bDest = tk.Button(self.con2, width=30, text='Destination Folder', command= lambda: self.setFolder('dest')).pack(**self.button_opt)
-        self.locLabels['dest'] = tk.Label(self.con2, text = os.path.normpath(self.paths['dest'])) 
+
+        self.b2Image = tk.PhotoImage(file="icon-arrow-r.gif")
+        self.b2Image = self.b2Image.subsample(4,4)
+        tk.Frame(self.con2, height = 20).pack()
+        self.bDest = tk.Button(self.con2, width=250, text='  Destination Folder', command= lambda: self.setFolder('dest'), image=self.b2Image, compound="left", pady=2, padx=20)
+        self.bDest.pack()
+        #self.bDest.pack(**self.button_opt)
+        
+        #self.bDest.config( width = 200 )       
+
+        self.locLabels['dest'] = tk.Label(self.con2, pady=15,text = os.path.normpath(self.paths['dest'])) 
         self.locLabels['dest'].pack()
-        tk.Frame(self.win, height = 30).pack()
-        self.bCopy   = tk.Button(self.win, state='normal' if self.__okToCopy() else 'disabled', text='Move Staged Files', pady = 10, command=self.moveFiles)
-        #self.bCopy   = tk.Button(self.win, state='disabled', text='Move Staged Files', pady = 10, command=self.moveFiles)
+        tk.Frame(self.win, height = 40).pack()
+
+        self.bImage = tk.PhotoImage(file="upload.gif")
+        self.bImage = self.bImage.subsample(2,2)
+
+        self.bCopy   = tk.Button(self.win, width=150, state='normal' if self.__okToCopy() else 'disabled', text='Move Staged Files', pady = 10, command=self.moveFiles, image=self.bImage, compound="bottom")
         self.bCopy.pack() #**self.button_opt)
         tk.Frame(self.win, height = 10).pack()
         self.xferLabel = tk.Label(self.win, text = 'Last Transfer Completed: {}'.format(self.results['lastXfer']))
@@ -88,7 +112,7 @@ class Hq:
         tk.Frame(self.win, height = 50).pack()
     
     def showHistory(self):
-        tkMessageBox.showinfo( "Report", "Files in the last transfer" )       
+        tkMessageBox.showinfo( "Files in the last transfer", "Report" )       
 
     def showXfers(self):
         dbHist = self.db.dbConfig['hqTables'][1]
@@ -97,8 +121,7 @@ class Hq:
         else:
             rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE hq_id = {1} ORDER BY move_date DESC LIMIT 10'.format( dbHist, self.db.hq_id)) 
             msg = self.db.parseRows(rows)
-        tkMessageBox.showinfo( "Report", msg )       
-
+        tkMessageBox.showinfo( "Summary of last 10 Transfers", msg )       
 
     def aboutBox(self):
         tkMessageBox.showinfo( "About", "Send files to HQ.\n\n(c)  2016 HQ" )       
@@ -327,7 +350,7 @@ class Db:
 
 def centerRoot(root):
     w = 600 # width for the Tk root
-    h = 600 # height for the Tk root
+    h = 700 # height for the Tk root
     ws = root.winfo_screenwidth() # width of the screen
     hs = root.winfo_screenheight() # height of the screen
 

@@ -1,0 +1,4 @@
+sdfsadf 
+Log opened on 2016/06/28 10:37:06 (UTC-7:00)
+
+10:37:06 [11388] Failed to run pipe server with low integrity and EPM support attributes
