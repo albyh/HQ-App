@@ -1,7 +1,7 @@
 #from __future__ import unicode_literals
 import Tkinter as tk, Tkconstants, tkFileDialog, tkMessageBox
 import shutil
-import os
+import os, errno
 import glob
 import datetime, time
 import sqlite3 as q
@@ -56,12 +56,12 @@ class Hq:
         self.headImage = tk.PhotoImage(file="header.gif")
         self.headImage = self.headImage.subsample(2,3)
 
-        tk.Label(self.win, text = self.text[0], font = ('Arial', 42, 'bold'), pady=20, anchor='s', compound="center", fg='white', image=self.headImage).pack()
+        tk.Label(self.win, text = self.text[0], font = ('Arial', 42, 'bold'), pady=10, anchor='s', compound="center", fg='white', image=self.headImage).pack()
         tk.Frame(self.win, height = 1).pack()
         tk.Label(self.win, text = self.text[1], font = ('Calibri', 12)).pack()
         tk.Label(self.win, text = self.text[2], font = ('Calibri', 12), padx = 20).pack()
         tk.Label(self.win, text = self.text[3], font = ('Calibri', 12)).pack()
-        tk.Frame(self.win, height = 20).pack()
+        tk.Frame(self.win, height = 10).pack()
 
     #create button container frame
         self.con1 = tk.Frame(self.win, height=50, width = 300, padx=100, pady=0, bd=3, relief='groove' )
@@ -70,12 +70,12 @@ class Hq:
     # define button
         self.b1Image = tk.PhotoImage(file="icon-arrow-l.gif")
         self.b1Image = self.b1Image.subsample(4,4)
-        tk.Frame(self.con1, height = 20).pack()
+        tk.Frame(self.con1, height = 15).pack()
         self.bSource = tk.Button(self.con1, width=250, font = ('Calibri', 14), text='  Source Folder', command= lambda: self.setFolder('src'), image=self.b1Image, compound="left", pady=2, padx=20)
         self.bSource.pack() 
-        self.locLabels['src'] = tk.Label(self.con1, pady=15, text = os.path.normpath(self.paths['src']))
+        self.locLabels['src'] = tk.Label(self.con1, pady=10, text = os.path.normpath(self.paths['src']))
         self.locLabels['src'].pack()
-        tk.Frame(self.win, height = 20).pack()
+        tk.Frame(self.win, height = 15).pack()
     
     #create button container frame    
         self.con2 = tk.Frame(self.win, height=20, width = 300, padx=100, pady=0, bd=3, relief='groove' )
@@ -84,19 +84,19 @@ class Hq:
     # define button
         self.b2Image = tk.PhotoImage(file="icon-arrow-r.gif")
         self.b2Image = self.b2Image.subsample(4,4)
-        tk.Frame(self.con2, height = 20).pack()
+        tk.Frame(self.con2, height = 15).pack()
         self.bDest = tk.Button(self.con2, width=250, font = ('Calibri', 14), text='  Destination Folder', command= lambda: self.setFolder('dest'), image=self.b2Image, compound="left", pady=2, padx=20)
         self.bDest.pack()
-        self.locLabels['dest'] = tk.Label(self.con2, pady=15,text = os.path.normpath(self.paths['dest'])) 
+        self.locLabels['dest'] = tk.Label(self.con2, pady=10,text = os.path.normpath(self.paths['dest'])) 
         self.locLabels['dest'].pack()
-        tk.Frame(self.win, height = 30).pack()
+        tk.Frame(self.win, height = 15).pack()
 
     # define button
         self.bImage = tk.PhotoImage(file="upload.gif")
         self.bImage = self.bImage.subsample(2,2)
         self.bCopy   = tk.Button(self.win, width=200, font = ('Calibri', 14), state='normal' if self.__okToCopy() else 'disabled', text='Move to\nStaging Folder', pady = 10, command=self.moveFiles, image=self.bImage, compound="right")
         self.bCopy.pack() #**self.button_opt)
-        tk.Frame(self.win, height = 30).pack()
+        tk.Frame(self.win, height = 15).pack()
 
         self.con3 = tk.Frame(self.win, height=20, width = 260, padx=40, pady=0, bd=2, relief='groove' )
         self.con3.pack()
@@ -109,7 +109,7 @@ class Hq:
         self.xferSkip.pack()
         tk.Frame(self.con3, height = 10).pack()
 
-        tk.Frame(self.win, height = 50).pack()
+        tk.Frame(self.win, height = 5).pack()
     
     def showHistory(self):
         tkMessageBox.showinfo( "Files in the last transfer", "Report" )       
@@ -239,6 +239,7 @@ class Hq:
 class Db:
     def __init__(self, hq_id):
         self.hq_id = hq_id
+        #dict that shared data with hq.json
         self.dbConfig = {}
         self.newTables = False
         self.dbConfig['configFile'] = 'hq.json'
@@ -251,12 +252,13 @@ class Db:
             'hq_id INTEGER PRIMARY KEY, src_dir TEXT NOT NULL, dest_dir TEXT NOT NULL, last_move TIMESTAMP',
             'hq_id INTEGER, move_date TIMESTAMP, moved INTEGER, failed INTEGER, skipped INTEGER, FOREIGN KEY(hq_id) REFERENCES {}(hq_id)'.format(self.dbConfig['hqTables'][0]),
             ]
+        #concatenated path+db_name
         self.hqdb = self.dbConfig['dbPath']+self.dbConfig['dbName']
 
         self.prepDb()
 
     def q(self, sqlStmt):
-        # q=query
+        # q=query utility method
         cursor = self.con.cursor()
         cursor.execute(sqlStmt)
         result = cursor.fetchall()
@@ -264,11 +266,26 @@ class Db:
         return result
 
     def x(self, sqlStmt, values=()):
-        # x=execute
+        # x=execute utility method
         cursor = self.con.cursor()
         cursor.execute(sqlStmt, values) if values else cursor.execute(sqlStmt)
         self.con.commit()
         cursor.close()
+
+    def emptyTable(self, table):
+        #utility method
+        #returns true if passed table is empty 
+        recs = self.c.execute('SELECT COUNT(*) FROM {} LIMIT 1'.format(table))
+        x = recs.fetchone()
+        return x[0] == 0
+
+    def parseRows(self,results):
+        #serves as the 'last 10' report
+        parsed = ''
+        for rec in results:
+            d, m, f, s = rec
+            parsed += 'Date: {} | Moved: {} | Failed: {} | Skipped: {}\n'.format( d.strftime( "%b %d, %Y at  %H:%M:%S"), m, f, s ) 
+        return parsed
 
     def prepDb(self):
         try:
@@ -278,7 +295,7 @@ class Db:
                 self.dbConfig['dbPath'] = hq_json['dbPath']
 
         except IOError as e:
-            tkMessageBox.showerror( "File Error", "Error opening F:\Skydrive\dev\projects\python\test_bin\source{0} to open file.\n Creating {0} and using defaults.".format(self.dbConfig['configFile']) )
+            tkMessageBox.showerror( "File Error", "Error opening {0}.\n Creating {0} and using defaults.".format(self.dbConfig['configFile']) )
             #Does not exist OR no read permissions
             print "Error opening {} to open file".format(self.dbConfig['configFile']) 
             
@@ -286,38 +303,29 @@ class Db:
                 json.dump(self.dbConfig, newDbFile)
         self.verifyDb() 
 
-    def parseRows(self,results):
-        parsed = ''
-        for rec in results:
-            d, m, f, s = rec
-            parsed += 'Date: {} | Moved: {} | Failed: {} | Skipped: {}\n'.format( d.strftime( "%b %d, %Y at  %H:%M:%S"), m, f, s ) 
-
-        return parsed
-
     def verifyDb(self):
         try:
-            #create database directory or fail gracefully if exists
+            #create database directory or fail pythonically if the path exists
+            #if dbPath in JSON is '' then db is expected in the program root
+            #if a path is provided in the JSON it must indlude the trailing / 
             os.makedirs(self.dbConfig['dbPath'])
 
         except OSError as exception:
-            #if exception.errno != errno.EEXIST:
-            #    raise
-            #self.hqdb = self.dbConfig['dbPath']+self.dbConfig['dbName']
-            with q.connect(self.hqdb, detect_types=q.PARSE_DECLTYPES) as self.con:
-                self.con.text_factory = str
-                self.c  = self.con.cursor()
-                self.verifyTables()
-                if self.emptyTable(self.dbConfig['hqTables'][0]):
-                    print( 'no records...populating table')
-                    self.populateTables()
-                    #assume tables are new
-                    self.newTables = True
+            #if the exception *isn't* that the directory exists, raise a real exception
+            if exception.errno != errno.EEXIST:
+                raise
 
-    def emptyTable(self, table):
-        #returns true if passed table is empty 
-        recs = self.c.execute('SELECT COUNT(*) FROM {} LIMIT 1'.format(table))
-        x = recs.fetchone()
-        return x[0] == 0
+            self.hqdb = self.dbConfig['dbPath']+self.dbConfig['dbName']
+
+        with q.connect(self.hqdb, detect_types=q.PARSE_DECLTYPES) as self.con:
+            self.con.text_factory = str
+            self.c  = self.con.cursor()
+            self.verifyTables()
+            if self.emptyTable(self.dbConfig['hqTables'][0]):
+                print( 'no records...populating table')
+                self.populateTables()
+                #assume tables are new
+                self.newTables = True
 
     def verifyTables(self):
         for i in range(len(self.dbConfig['hqTables'])):
@@ -327,13 +335,12 @@ class Db:
         hqDataVals = [self.hq_id, "C:/", "C:/", None]
         print( self.c.rowcount)
         self.c.execute('INSERT INTO {} VALUES (?,?,?,?)'.format(self.dbConfig['hqTables'][0]), (hqDataVals[0],hqDataVals[1],hqDataVals[2],hqDataVals[3],) )
-        print('added {}'.format(hqDataVals))
-        print( self.c.rowcount)
+        print('Created new tables and added default data {}'.format(hqDataVals))
         self.con.commit()
 
 def centerRoot(root):
     w = 600 # width for the Tk root
-    h = 800 # height for the Tk root
+    h = 680 # height for the Tk root
     ws = root.winfo_screenwidth() # width of the screen
     hs = root.winfo_screenheight() # height of the screen
     # calculate x and y coordinates for the Tk root window

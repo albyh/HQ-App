@@ -27,6 +27,7 @@
     <Content Include="dest\TextFile1.txt" />
     <Content Include="dest\TextFile2.txt" />
     <Content Include="dest\TextFile3.txt" />
+    <Content Include="hq.json" />
     <Content Include="README.md" />
     <Content Include="source\AppLog_2016-07-07.txt" />
     <Content Include="source\AppLog_2016-07-08.txt" />
