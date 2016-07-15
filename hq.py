@@ -117,11 +117,11 @@ class Hq:
     def showXfers(self):
         dbHist = self.db.dbConfig['hqTables'][1]
         if self.db.emptyTable(dbHist):
-            tkMessageBox.showinfo( "No transfers to report." )       
+            tkMessageBox.showinfo( "No Data", "No transfers to report." )       
         else:
             rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE hq_id = {1} ORDER BY move_date DESC LIMIT 10'.format( dbHist, self.db.hq_id)) 
             msg = self.db.parseRows(rows)
-        tkMessageBox.showinfo( "Summary of last 10 Transfers", msg )       
+            tkMessageBox.showinfo( "Summary of last 10 Transfers", msg )       
 
     def aboutBox(self):
         tkMessageBox.showinfo( "About", "Send files to HQ.\n\n(c)  2016 HQ" )       
@@ -275,9 +275,9 @@ class Db:
     def emptyTable(self, table):
         #utility method
         #returns true if passed table is empty 
-        recs = self.c.execute('SELECT COUNT(*) FROM {} LIMIT 1'.format(table))
-        x = recs.fetchone()
-        return x[0] == 0
+        query = 'SELECT COUNT(*) FROM {} LIMIT 1'.format(table)
+        x = self.q(query)
+        return x[0][0] == 0
 
     def parseRows(self,results):
         #serves as the 'last 10' report
@@ -308,18 +308,22 @@ class Db:
             #create database directory or fail pythonically if the path exists
             #if dbPath in JSON is '' then db is expected in the program root
             #if a path is provided in the JSON it must indlude the trailing / 
-            os.makedirs(self.dbConfig['dbPath'])
+            if self.dbConfig['dbPath']:
+                os.makedirs(self.dbConfig['dbPath'])
 
         except OSError as exception:
             #if the exception *isn't* that the directory exists, raise a real exception
             if exception.errno != errno.EEXIST:
                 raise
+            #if (not self.dbConfig['dbPath']) or not self.dbConfig['dbPath'].endswith('/'):
+            if (not self.dbConfig['dbPath']) or (not self.dbConfig['dbPath'].endswith('/')):
+                print("Path in db.json is not formatted correctly.\nPath should be '' for root or end with a slash e.g. data/")
+                raise #Exception("Path in db.json is not formatted correctly.\nPath should be '' for root or end with a slash e.g. data/")
 
-            self.hqdb = self.dbConfig['dbPath']+self.dbConfig['dbName']
+        self.hqdb = self.dbConfig['dbPath']+self.dbConfig['dbName']
 
         with q.connect(self.hqdb, detect_types=q.PARSE_DECLTYPES) as self.con:
             self.con.text_factory = str
-            self.c  = self.con.cursor()
             self.verifyTables()
             if self.emptyTable(self.dbConfig['hqTables'][0]):
                 print( 'no records...populating table')
@@ -328,15 +332,18 @@ class Db:
                 self.newTables = True
 
     def verifyTables(self):
+        #create tables if they don't exist
         for i in range(len(self.dbConfig['hqTables'])):
-            self.c.execute('CREATE TABLE IF NOT EXISTS {}({})'.format(self.dbConfig['hqTables'][i],self.dbConfig['hqFields'][i]) )
+            #self.c.execute('CREATE TABLE IF NOT EXISTS {}({})'.format(self.dbConfig['hqTables'][i],self.dbConfig['hqFields'][i]) )
+            sqlStmt = 'CREATE TABLE IF NOT EXISTS {}({})'.format(self.dbConfig['hqTables'][i],self.dbConfig['hqFields'][i]) 
+            self.x(sqlStmt)
 
     def populateTables(self):
         hqDataVals = [self.hq_id, "C:/", "C:/", None]
-        print( self.c.rowcount)
-        self.c.execute('INSERT INTO {} VALUES (?,?,?,?)'.format(self.dbConfig['hqTables'][0]), (hqDataVals[0],hqDataVals[1],hqDataVals[2],hqDataVals[3],) )
-        print('Created new tables and added default data {}'.format(hqDataVals))
-        self.con.commit()
+        sqlStmt = 'INSERT INTO {} VALUES (?,?,?,?)'.format(self.dbConfig['hqTables'][0])
+        values = (hqDataVals[0],hqDataVals[1],hqDataVals[2],hqDataVals[3],)
+        self.x(sqlStmt, values)
+        print('Created new tables and added default data') 
 
 def centerRoot(root):
     w = 600 # width for the Tk root
