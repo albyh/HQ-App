@@ -112,7 +112,16 @@ class Hq:
         tk.Frame(self.win, height = 5).pack()
     
     def showHistory(self):
-        tkMessageBox.showinfo( "Files in the last transfer", "Report" )       
+        h = self.db.dbConfig['hqTables'][1] #hq_history
+        r = self.db.dbConfig['hqTables'][2] #hq_results
+
+        if self.db.emptyTable(r):
+            tkMessageBox.showinfo( "No Data", "No transfers to report." )       
+        else:
+            query = "SELECT r.filename FROM {0} r INNER JOIN {1} h ON r.move_date = h.move_date WHERE (SELECT MAX(h.move_date) FROM {1} h) = r.move_date".format(r, h)
+            rows = self.db.q(query) 
+            msg = self.db.reportLastFiles(rows)
+            tkMessageBox.showinfo( "Files moved in Last Batch", msg )       
 
     def showXfers(self):
         dbHist = self.db.dbConfig['hqTables'][1]
@@ -120,7 +129,7 @@ class Hq:
             tkMessageBox.showinfo( "No Data", "No transfers to report." )       
         else:
             rows = self.db.q('SELECT move_date, moved, failed, skipped FROM {0} WHERE hq_id = {1} ORDER BY move_date DESC LIMIT 10'.format( dbHist, self.db.hq_id)) 
-            msg = self.db.parseRows(rows)
+            msg = self.db.reportLast10(rows)
             tkMessageBox.showinfo( "Summary of last 10 Transfers", msg )       
 
     def aboutBox(self):
@@ -233,7 +242,7 @@ class Hq:
         values = (self.db.hq_id, cutoff, len(moved), 0, len(skipped))
         self.db.x(sqlStmt, values)
 
-        for filename in skipped:
+        for filename in moved:
             sqlStmt = r"INSERT INTO {} VALUES (?,?,?)".format(self.db.dbConfig['hqTables'][2]) #hq_results
             values = (self.db.hq_id, cutoff, filename )
             self.db.x(sqlStmt, values)
@@ -287,12 +296,18 @@ class Db:
         x = self.q(query)
         return x[0][0] == 0
 
-    def parseRows(self,results):
-        #serves as the 'last 10' report
+    def reportLast10(self,results):
         parsed = ''
         for rec in results:
             d, m, f, s = rec
             parsed += 'Date: {} | Moved: {} | Failed: {} | Skipped: {}\n'.format( d.strftime( "%b %d, %Y at  %H:%M:%S"), m, f, s ) 
+        return parsed
+
+    def reportLastFiles(self,results):
+        parsed = ''
+        for rec in results:
+            f = rec
+            parsed += '{}\n'.format( f ) 
         return parsed
 
     def prepDb(self):
