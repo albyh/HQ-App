@@ -52,7 +52,11 @@ class Hq:
         self.win.config(menu=menubar) 
 
     def __initWin(self):
-        tk.Label(self.win, text = self.text[0], font = ('Arial', 18, 'bold'), pady=20).pack()
+       
+        self.headImage = tk.PhotoImage(file="header.gif")
+        self.headImage = self.headImage.subsample(2,3)
+
+        tk.Label(self.win, text = self.text[0], font = ('Arial', 30, 'bold'), pady=20, anchor='s', compound="center", fg='white', image=self.headImage).pack()
         tk.Frame(self.win, height = 1).pack()
         tk.Label(self.win, text = self.text[1]).pack()
         tk.Label(self.win, text = self.text[2], padx = 20).pack()
@@ -62,20 +66,13 @@ class Hq:
     #create button container frame
         self.con1 = tk.Frame(self.win, height=50, width = 300, padx=100, pady=0, bd=2, relief='groove' )
         self.con1.pack()
-        # options for src/dest buttons
 
+    # define button
         self.b1Image = tk.PhotoImage(file="icon-arrow-l.gif")
         self.b1Image = self.b1Image.subsample(4,4)
         tk.Frame(self.con1, height = 20).pack()
-        #self.button_opt = {'fill': Tkconstants.BOTH, 'padx': 10, 'pady': 10}
-        #self.button_opt = {'padx': 10, 'pady': 10}
-        # define buttons
         self.bSource = tk.Button(self.con1, width=250, text='  Source Folder', command= lambda: self.setFolder('src'), image=self.b1Image, compound="left", pady=2, padx=20)
         self.bSource.pack() 
-        #self.bSource.pack(**self.button_opt) 
-
-        #self.bSource.config( width = 200 )                
-
         self.locLabels['src'] = tk.Label(self.con1, pady=15, text = os.path.normpath(self.paths['src']))
         self.locLabels['src'].pack()
         tk.Frame(self.win, height = 20).pack()
@@ -84,26 +81,27 @@ class Hq:
         self.con2 = tk.Frame(self.win, height=20, width = 300, padx=100, pady=0, bd=2, relief='groove' )
         self.con2.pack()
 
+    # define button
         self.b2Image = tk.PhotoImage(file="icon-arrow-r.gif")
         self.b2Image = self.b2Image.subsample(4,4)
         tk.Frame(self.con2, height = 20).pack()
         self.bDest = tk.Button(self.con2, width=250, text='  Destination Folder', command= lambda: self.setFolder('dest'), image=self.b2Image, compound="left", pady=2, padx=20)
         self.bDest.pack()
-        #self.bDest.pack(**self.button_opt)
-        
-        #self.bDest.config( width = 200 )       
-
         self.locLabels['dest'] = tk.Label(self.con2, pady=15,text = os.path.normpath(self.paths['dest'])) 
         self.locLabels['dest'].pack()
         tk.Frame(self.win, height = 40).pack()
 
+    # define button
         self.bImage = tk.PhotoImage(file="upload.gif")
         self.bImage = self.bImage.subsample(2,2)
-
         self.bCopy   = tk.Button(self.win, width=150, state='normal' if self.__okToCopy() else 'disabled', text='Move Staged Files', pady = 10, command=self.moveFiles, image=self.bImage, compound="bottom")
         self.bCopy.pack() #**self.button_opt)
         tk.Frame(self.win, height = 10).pack()
-        self.xferLabel = tk.Label(self.win, text = 'Last Transfer Completed: {}'.format(self.results['lastXfer']))
+
+        #self.con3 = tk.Frame(self.win, height=20, width = 300, padx=100, pady=0, bd=2, relief='groove' )
+        #self.con3.pack()
+
+        self.xferLabel = tk.Label(self.win, font = ('Arial', 10, 'bold'), text = 'Last Transfer Completed: {}'.format(self.results['lastXfer']))
         self.xferLabel.pack()
         self.xferMove = tk.Label(self.win, text = 'Files Moved Last Transfer: {}'.format(len(self.results['moved'])))
         self.xferMove.pack()
@@ -160,7 +158,6 @@ class Hq:
 
         self.bCopy['state'] = 'normal' if self.__okToCopy() else 'disabled'
 
-
     def __getDbPaths(self):
         for loc in self.locLabels:
             rows = self.db.q('SELECT {}_dir FROM hq_data WHERE hq_id = {}'.format(loc, self.db.hq_id))
@@ -177,7 +174,6 @@ class Hq:
             self.bCopy['state'] = 'normal' if self.__okToCopy() else 'disabled'
             self.db.newTables = False
 
-
     def __setPathLabel(self,loc):
         #Updates the label passed as 'loc' with the currently selected path 
         self.locLabels[loc].config(text = (self.paths[loc]))    
@@ -188,23 +184,11 @@ class Hq:
         tkMessageBox.showinfo( "Summary", "{} files moved and {} files skipped.\nSee console for details.".format(m, c) )
 
     def __edited(self, f):
-	    #was the file edited since the last_move date stored to db
-        #return True if ((cutoff - os.path.getmtime(f))/3600 <= 24) else False
-        #return true if file's current datetime is > than the cutoff
-        
-        #x = datetime.datetime.fromtimestamp( os.path.getmtime(f) )
-        #z = self.results['lastXfer']
-
-        #print( datetime.datetime.fromtimestamp( os.path.getmtime(f) ) ) 
-        #print( self.results['lastXfer'] ) 
-        #print( datetime.datetime.strptime(self.results['lastXfer'], '%Y-%m-%d %H:%M:%S.0000') )
-        
         return True if ( datetime.datetime.fromtimestamp( os.path.getmtime(f) ) > self.results['lastXfer'] ) else False
 
     def moveFiles(self):
         #copy ALL .txt files MODIFIED/CREATED since last move from Folder "src" to Folder "dest"
         file_filter = "*.txt"
-        #cutoff = time.time()
         cutoff = datetime.datetime.now()
         #if no prior transfer, set datetime to now
         if self.results['lastXfer'] == None:
@@ -245,13 +229,10 @@ class Hq:
         sqlStmt = r"INSERT INTO hq_history VALUES (?,?,?,?,?)"
         values = (self.db.hq_id, cutoff, len(moved), 0, len(skipped))
         self.db.x(sqlStmt, values)
-        
         self.__showResults(len(moved), len(skipped))
         self.__setHistoryLabels() 
         self.results["moved"] = moved
         self.results["skipped"] = skipped
-
-    
 
 class Db:
     def __init__(self, hq_id):
@@ -350,16 +331,13 @@ class Db:
 
 def centerRoot(root):
     w = 600 # width for the Tk root
-    h = 700 # height for the Tk root
+    h = 800 # height for the Tk root
     ws = root.winfo_screenwidth() # width of the screen
     hs = root.winfo_screenheight() # height of the screen
-
     # calculate x and y coordinates for the Tk root window
     x = (ws/2) - (w/2)
     y = (hs/2) - (h/2)
-
-    # set the dimensions of the screen 
-    # and where it is placed
+    # set the dimensions of the screen and where it is placed
     root.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
 def main():
