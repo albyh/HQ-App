@@ -16,9 +16,9 @@ class Hq:
         self.locLabels = {'src': '', 'dest': '' } #Tkinter pointer
         self.text = [
             "Send Files to HQ", 
-            "This application will move files modified or edited in the past 24 hours",
-            "from the Source folder to the Destination folder selected using the buttons below.",
-            "Select Source and Destination folders then click 'Move Staged Files'",
+            "This helpful app automates the transfering of modified files to HQ",
+            "Files modified since the prior transfer will be moved to the Staging Folder.",
+            "Select Source and Destination folders then click 'Move to Staging Folder'",
         ]
         # defining options for opening a directory
         self.dir_opt = self.options = {}
@@ -56,57 +56,59 @@ class Hq:
         self.headImage = tk.PhotoImage(file="header.gif")
         self.headImage = self.headImage.subsample(2,3)
 
-        tk.Label(self.win, text = self.text[0], font = ('Arial', 30, 'bold'), pady=20, anchor='s', compound="center", fg='white', image=self.headImage).pack()
+        tk.Label(self.win, text = self.text[0], font = ('Arial', 42, 'bold'), pady=20, anchor='s', compound="center", fg='white', image=self.headImage).pack()
         tk.Frame(self.win, height = 1).pack()
-        tk.Label(self.win, text = self.text[1]).pack()
-        tk.Label(self.win, text = self.text[2], padx = 20).pack()
-        tk.Label(self.win, text = self.text[3]).pack()
+        tk.Label(self.win, text = self.text[1], font = ('Calibri', 12)).pack()
+        tk.Label(self.win, text = self.text[2], font = ('Calibri', 12), padx = 20).pack()
+        tk.Label(self.win, text = self.text[3], font = ('Calibri', 12)).pack()
         tk.Frame(self.win, height = 20).pack()
 
     #create button container frame
-        self.con1 = tk.Frame(self.win, height=50, width = 300, padx=100, pady=0, bd=2, relief='groove' )
+        self.con1 = tk.Frame(self.win, height=50, width = 300, padx=100, pady=0, bd=3, relief='groove' )
         self.con1.pack()
 
     # define button
         self.b1Image = tk.PhotoImage(file="icon-arrow-l.gif")
         self.b1Image = self.b1Image.subsample(4,4)
         tk.Frame(self.con1, height = 20).pack()
-        self.bSource = tk.Button(self.con1, width=250, text='  Source Folder', command= lambda: self.setFolder('src'), image=self.b1Image, compound="left", pady=2, padx=20)
+        self.bSource = tk.Button(self.con1, width=250, font = ('Calibri', 14), text='  Source Folder', command= lambda: self.setFolder('src'), image=self.b1Image, compound="left", pady=2, padx=20)
         self.bSource.pack() 
         self.locLabels['src'] = tk.Label(self.con1, pady=15, text = os.path.normpath(self.paths['src']))
         self.locLabels['src'].pack()
         tk.Frame(self.win, height = 20).pack()
     
     #create button container frame    
-        self.con2 = tk.Frame(self.win, height=20, width = 300, padx=100, pady=0, bd=2, relief='groove' )
+        self.con2 = tk.Frame(self.win, height=20, width = 300, padx=100, pady=0, bd=3, relief='groove' )
         self.con2.pack()
 
     # define button
         self.b2Image = tk.PhotoImage(file="icon-arrow-r.gif")
         self.b2Image = self.b2Image.subsample(4,4)
         tk.Frame(self.con2, height = 20).pack()
-        self.bDest = tk.Button(self.con2, width=250, text='  Destination Folder', command= lambda: self.setFolder('dest'), image=self.b2Image, compound="left", pady=2, padx=20)
+        self.bDest = tk.Button(self.con2, width=250, font = ('Calibri', 14), text='  Destination Folder', command= lambda: self.setFolder('dest'), image=self.b2Image, compound="left", pady=2, padx=20)
         self.bDest.pack()
         self.locLabels['dest'] = tk.Label(self.con2, pady=15,text = os.path.normpath(self.paths['dest'])) 
         self.locLabels['dest'].pack()
-        tk.Frame(self.win, height = 40).pack()
+        tk.Frame(self.win, height = 30).pack()
 
     # define button
         self.bImage = tk.PhotoImage(file="upload.gif")
         self.bImage = self.bImage.subsample(2,2)
-        self.bCopy   = tk.Button(self.win, width=150, state='normal' if self.__okToCopy() else 'disabled', text='Move Staged Files', pady = 10, command=self.moveFiles, image=self.bImage, compound="bottom")
+        self.bCopy   = tk.Button(self.win, width=200, font = ('Calibri', 14), state='normal' if self.__okToCopy() else 'disabled', text='Move to\nStaging Folder', pady = 10, command=self.moveFiles, image=self.bImage, compound="right")
         self.bCopy.pack() #**self.button_opt)
-        tk.Frame(self.win, height = 10).pack()
+        tk.Frame(self.win, height = 30).pack()
 
-        #self.con3 = tk.Frame(self.win, height=20, width = 300, padx=100, pady=0, bd=2, relief='groove' )
-        #self.con3.pack()
-
-        self.xferLabel = tk.Label(self.win, font = ('Arial', 10, 'bold'), text = 'Last Transfer Completed: {}'.format(self.results['lastXfer']))
+        self.con3 = tk.Frame(self.win, height=20, width = 260, padx=40, pady=0, bd=2, relief='groove' )
+        self.con3.pack()
+        tk.Frame(self.con3, height = 10).pack()
+        self.xferLabel = tk.Label(self.con3, font = ('Arial', 10, 'bold'), text = 'Last Transfer Completed: {}'.format(self.results['lastXfer']))
         self.xferLabel.pack()
-        self.xferMove = tk.Label(self.win, text = 'Files Moved Last Transfer: {}'.format(len(self.results['moved'])))
+        self.xferMove = tk.Label(self.con3, text = 'Files Moved Last Transfer:{}'.format(len(self.results['moved'])))
         self.xferMove.pack()
-        self.xferSkip = tk.Label(self.win, text = 'Files Skipped Last Transfer: {}'.format(len(self.results['skipped'])))
+        self.xferSkip = tk.Label(self.con3, text = 'Files Skipped Last Transfer:{}'.format(len(self.results['skipped'])))
         self.xferSkip.pack()
+        tk.Frame(self.con3, height = 10).pack()
+
         tk.Frame(self.win, height = 50).pack()
     
     def showHistory(self):
@@ -141,8 +143,8 @@ class Hq:
             assert len(rows) is 1, "Didn't receive exactly one item back."
             xferDate, moved, failed, skipped = rows[0]
 
-            self.xferLabel.config(text = 'Last Transfer Completed: {}'.format( xferDate.strftime( "%b %d, %Y at  %H:%M:%S")) )
-            self.xferMove.config(text = 'Files Moved Last Transfer: {}'.format( moved ))
+            self.xferLabel.config(text = 'Last Transfer Completed: {}'.format( xferDate.strftime( "%b %d, %Y at %H:%M:%S")) )
+            self.xferMove.config(text = 'Files Moved Last Transfer:  {}'.format( moved ))
             self.xferSkip.config(text = 'Files Skipped Last Transfer: {}'.format( skipped ))
 
     def setFolder(self,loc):
